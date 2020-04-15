@@ -1,0 +1,15 @@
+# env variables
+.env
+
+inits.tgz
+node_modules
+
+# Mac
+.DS_Store
+
+#
+## JetBrains IDE's
+
+.idea/
+*.iml
+*.iws

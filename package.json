@@ -1,0 +1,17 @@
+{
+    "name": "cloud-in-a-shell",
+    "version": "0.0.1",
+    "private": true,
+    "description": "",
+    "author": "Michael Becker <michael@bemit.codes",
+    "license": "MIT",
+    "homepage": "",
+    "scripts": {
+        "pack": "node packer.js --pack",
+        "upload": "node upload.js"
+    },
+    "dependencies": {
+        "ssh2-sftp-client": "^5.1.2",
+        "tar": "^6.0.1"
+    }
+}
