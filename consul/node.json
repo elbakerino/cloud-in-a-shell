@@ -1,0 +1,28 @@
+{
+  "advertise_addr": "%advertise_addr%",
+  "bind_addr": "%bind_addr%",
+  "bootstrap_expect": %bootstrap_expect%,
+  "client_addr": "%client_addr%",
+  "datacenter": "%datacenter%",
+  "data_dir": "/var/lib/consul",
+  "domain": "consul",
+  "enable_script_checks": true,
+  "dns_config": {
+    "enable_truncate": true,
+    "only_passing": true
+  },
+  "acl": {
+    "enabled": true,
+    "default_policy": "deny",
+    "enable_token_persistence": true
+  },
+  "enable_syslog": true,
+  "encrypt": "%encrypt%",
+  "leave_on_terminate": true,
+  "log_level": "INFO",
+  "rejoin_after_leave": true,
+  "retry_join": %retry_join%,
+  "server": %server%,
+  "start_join": %start_join%,
+  "ui": %ui%
+}

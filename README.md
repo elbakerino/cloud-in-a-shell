@@ -1,56 +1,83 @@
-# Server Inits - Server Creation Helper
+# Cloud in a Shell: Server Creation Helper
 
 (bash) scripts for easy deployment of servers - run some scripts and launch!
 
 Useful for single-server and small cluster with services on multiple servers: loadbalancer, computing units, file-server, database, monitoring and more.
 
-🚧 WIP, mostly scripts which are in use for creating base images of servers and having the most repeated code as documentation.
+🚧 WIP, just some scripts to have the most repeated code as documentation.
 
 Tested/used on Ubuntu 18.04 LTS and CentOS 8 virtual cloud server.
 
-- [Upload to Server](#markdown-header-upload-to-server)
-- [Config](#markdown-header-config)
-- [Tools](#markdown-header-tools)
-- [Add New Task](#markdown-header-add-new-task)
-- [Todos](#markdown-header-todos)
-- [License](#markdown-header-license)
-- [Special Thanks](#markdown-header-special-thanks)
+- [Upload to Server](#upload-to-server)
+- [Config](#config)
+- [Tools](#tools)
+    - [Ansible](#ansible)
+    - [Apache](#apache-ubuntu)
+    - [Certbot](#certbot-for-ssl--tls)
+    - [Grafana](#grafana)
+    - [HAProxy](#haproxy)
+    - [Hetzner](#hetzner)
+    - [MariaDB / MySQL](#mariadb--mysql)
+    - [NGINX](#nginx)
+    - [PHP](#php)
+    - [Prometheus](#prometheus)
+    - [SSH](#ssh)
+    - [Extras](#extras)
+- [Todos](#todos)
+- [License](#license)
+- [Special Thanks](#special-thanks)
+
+## Recipes
+
+- [Webserver Apache + PHP](./HOW_Webserver-Apache-PHP.md)
+- [DB Master MySQL](./HOW_DB-Master-MySQL.md)
+- [Loadbalancer HAProxy](./HOW_Loadbalancer-HAProxy.md)
+- [Monitoring Master](./HOW_Monitoring-Master.md)
+- [Bastion Host](./HOW_Bastion-Host.md)
 
 ## Upload to Server
 
-Upload to server from a client, uses `ssh-pageant` to determine SSH_AUTH_SOCK, tested on windows with putty-pageant.
+Pack this folder to `inits.tgz`, upload to server and unpack there. Uses `ssh-pageant` to determine SSH_AUTH_SOCK, tested on windows with putty-pageant.
 
 ```bash
 npm i
 
 npm run upload <host> <user> <remote_dir>
 npm run upload 1.2.3.4 root /root
-```
 
-Extract on Server:
+# open server terminal
 
-```bash
 # CentOS needs tar, Ubuntu has it
 dnf install tar -y
 
-# in new dir
-mkdir -p inits && tar xvf inits.tgz -C inits && cd inits && chmod -R u+x *.sh
+# switch to upload dir, create target dir, unpack and allow execution:
+# should display `on Ubuntu` or `on Centos` at the end:
+cd /root && mkdir -p inits && tar xvf inits.tgz -C inits && cd inits && find . -type f -name "*.sh" -print0 | xargs -0 chmod u+x && ./_boot.sh
+```
 
-mkdir -p inits && tar xvf inits.tgz -C inits && cd inits && find . -type f -name "*.sh" -print0 | xargs -0 chmod u+x
+<details>
+<summary>Further Unpack and Update Snippets</summary>
+<br>
+
+```bash
+# in new dir
+mkdir -p inits && tar xvf inits.tgz -C inits && cd inits && find . -type f -name "*.sh" -print0 | xargs -0 chmod u+x && ./_boot.sh
 
 # in current dir
-tar xvf inits.tgz && chmod -R u+x *.sh
+tar xvf inits.tgz && find . -type f -name "*.sh" -print0 | xargs -0 chmod u+x
 
-# update in ~/inits
-rm -rf ~/inits/ && cd ~/inits && tar xvf inits.tgz -C inits && cd inits && chmod -R u+x *.sh
+# update in /root/inits
+rm -rf /root/inits/ && cd /root && tar xvf inits.tgz -C inits && cd inits && find . -type f -name "*.sh" -print0 | xargs -0 chmod u+x
 
 # only execution rights (in folder `inits`)
 find . -type f -name "*.sh" -print0 | xargs -0 chmod u+x
 ```
 
+</details>
+
 ## Config
 
-A few things can easily configured through the [conf.sh](conf.sh) - if needed.
+A few things can be configured through the [conf.sh](./_boot/conf.sh).
 
 Use `./conf-set.sh` for ease, copies default conf.sh up one folder if it not exists there.
 
@@ -90,15 +117,26 @@ vi ../conf.sh
 
 *todo: update process of new conf vars*
 
-## Tools
+## Scripts
+
+These scripts contain the different setup, configuration or management logic for the different services.
+
+### Basics
+
+Includes basic packages which are used throughout the other scripts or are important for the most used features.
+
+- `./tool/basics-ubuntu.sh`
+- `./tool/basics-centos.sh`
 
 ### Ansible 
+
+❌
 
 - `./ansible/install-ansible.sh` (ubuntu)
 
 ### Apache (ubuntu)
 
-- install: `./apache/install-apache.sh` (**relies on ubuntu-basics**)
+- install: `./apache/install-apache.sh` (**relies on basics-ubuntu**)
     - firewall ports needs to be enabled manually
 - performance: `./apache/conf-performance.sh [cores]`, configures mpm server limits based on cpu
     - `./apache/conf-performance.sh 1`, `./apache/conf-performance.sh 4`
@@ -116,7 +154,7 @@ Apache vhost management:
     - `./apache/vhost-alias-add.sh example demo.example.org`, adds alias to vhost `/var/www/vhosts/example` and config: `/etc/apache2/sites-available/example.conf`
 - alias rm: `./apache/vhost-alias-rm.sh <vh-name> <alias>`
 
-Apache SSL:
+Apache SSL (uses certbot):
 
 - enables ssl redir: `./apache/vhost-ssl-redir.sh <vh-name>`
 - ssl secure: `./apache/vhost-ssl-secure.sh <vh-name> <notify-email>`
@@ -129,45 +167,54 @@ Apache SSL:
 
 > Legal Notice for using certbot:
 >
-> Let’s Encrypt usage to provision TLS certificates oblige to the [Let’s Encrypt Subscriber Agreement(s) & Terms of Services](https://letsencrypt.org/repository/). You accept the terms by using the certbot scripts supplied by serverinits.
+> Let’s Encrypt usage to provision TLS certificates oblige to the [Let’s Encrypt Subscriber Agreement(s) & Terms of Services](https://letsencrypt.org/repository/). You accept the terms by using the SSL scripts supplied by cloud-in-a-shell.
 
-- apache: `./certbot/install-apache-certbot.sh` (**relies on ubuntu-basics**) (ubuntu)
+- apache: `./certbot/install-apache-certbot.sh` (**relies on basics-ubuntu**) (ubuntu)
     - for management use: `./apache-vhost-ssl-secure`
 - haproxy: `./certbot/install-haproxy-certbot.sh <cert-name> <email> [<(new)-host>]`, installs certbot and setups certs, only installs when not installed
     - `./certbot/install-haproxy-certbot.sh example hostmaster@example.org`, creates or updates the cert `example.pem` with the warning email 
     - `./certbot/install-haproxy-certbot.sh example hostmaster@example.org demo.example.org`, creates or updates the cert `example.pem` with the warning email, adds the host `demo.example.org` to the hosts of the file
-- nginx: `./certbot/install-nginx-certbot.sh` (ubuntu/centos) (**relies on ubuntu-basics**)
+- nginx: `./certbot/install-nginx-certbot.sh` (ubuntu/centos) (**relies on basics-ubuntu**)
 - centos: `./certbot/install-centos.sh` installs certbot-auto on centos
 
-### Consul 
+### Consul
+
+❌
+
+### Grafana
+
+- install: `./grafana/install-grafana.sh` (ubuntu) (**relies on basics-ubuntu**)
 
 ### HAProxy
 
-❌
-
-- install: `./haproxy/install-haproxy.sh` (centos) (*todo: split centos basic setup*)
+- install: `./haproxy/install-haproxy.sh` (centos) (**relies on basics-centos**)
 - reload: `./haproxy/reload.sh`
 
-HAProxy Servers:
+Servers:
 
+- list: `./haproxy/server-list.sh`
 - add: `./haproxy/server-add.sh`
 - drain: `./haproxy/server-drain.sh`
 - enable: `./haproxy/server-enable.sh`
-- list: `./haproxy/server-list.sh`
-- maint: `./haproxy/server-maint.sh`
-- stats-secure: `./haproxy/stats-secure.sh`
+- disable: `./haproxy/server-disable.sh`
+
+Stats:
+
+- stats-secure: `./haproxy/stats-secure.sh <username>`, secures the stats page with custom basic-auth credentials, (interactive)
+
+Stats defaults to: `hostname:8080/stats` (or ip instead of host)
 
 ### Hetzner
 
-❌
-
-- float ip bind: `./hetzner/floatip-bind.sh` (todo: not dynamic)
+- float ip bind: `./hetzner/floatip-bind.sh <ip4> [<ip6>]` (centos/ubuntu)
 
 ### MariaDB / MySQL
 
-❌
-
-- install: `./mariadb/install-mariadb.sh`
+- install: `./mariadb/install-mariadb.sh`, (interactive)
+- user create: `./mariadb/create-user.sh`, (interactive)
+- db create: `./mariadb/create-db.sh`, (interactive)
+- remote allow: `./mariadb/remote-allow.sh`
+- remote forbid: `./mariadb/remote-forbid.sh`
 
 ### NGINX
 
@@ -179,145 +226,47 @@ HAProxy Servers:
 
 ### PHP
 
-- install: `./php/install-php.sh`, installs php (7.4) and composer (ubuntu) 
+- install: `./php/install-php.sh`, installs php (7.4) and composer, (ubuntu) 
 - config cli: `./php/php-cli.sh`, basic configuration for cli usage
 - config fpm: `./php/php-fpm.sh`, basic configuration for fpm servers
     - currently optimized for apache usage / apache has mpm_event which controls fpm servers
 
 ### Prometheus
 
-- install: `./prometheus/install-master.sh` install prometheus master and grafana, (ubuntu) (*todo: split grafana*) 
+- install: `./prometheus/install-master.sh` install prometheus master and grafana, (ubuntu) 
 - install exporter: 
     - apache: `./prometheus/exporter-apache.sh`, (ubuntu/centos)
     - haproxy: `./prometheus/exporter-haproxy.sh`, (ubuntu/centos) (*todo: fail after reboot, wrong owner of stats*)
     - mysql/mariadb: `./prometheus/exporter-mysql.sh`, (ubuntu/centos)
-    - system: `./prometheus/exporter-node.sh`, (cpu, memory, network), (ubuntu/centos)
+    - system: `./prometheus/exporter-node.sh`, (cpu, memory, network...), (ubuntu/centos)
     - statsd: `./prometheus/exporter-statsd.sh`, [statsd](https://github.com/statsd/statsd) a generic stats daemon, (ubuntu/centos) (*scribble*)
 - master tools:
     - target add: `./prometheus/add-target.sh <target>`, add new scraper targets, (ubuntu)
         - `./prometheus-add-target.sh 10.0.0.2:9100 10.0.0.2:9100` supports multiple at once
         - *todo*: not adding already existing once
-- exporter tools: (*todo finalize*)
+- exporter tools:
     - network tools allow scraper access from within configured `NET_MONIT`/24
     - haproxy: `./prometheus/network-haproxy.sh` 9101 (ubuntu/centos)
     - statsd: `./prometheus/network-statsd.sh` 9102 (ubuntu/centos)
     - apache: `./prometheus/network-apache.sh` 9117 (ubuntu/centos)
+    - mysql: `./prometheus/network-mysql.sh` 9104 (ubuntu/centos)
     - node: `./prometheus/network-node.sh` 9100 (ubuntu/centos)
 
 ### SSH 
-
-❌
 
 - `./ssh/agent-enable.sh`, register/enable SSH-Agent for all processes, enabling start at boot, (automatic) (ubuntu/centos)
 - `./ssh/forbid-pw-access.sh`, forbid PW login, only cert login allowed, (ubuntu/centos)
 - `./ssh/key-allow.sh`, allow access with a key, asks for the key, (interactive) (ubuntu/centos) (*todo: check duplicates*)
 - `./ssh/key-gen.sh <name> [<pass>]`, generate new SSH key, prints new public key at end, (interactive) (ubuntu/centos)
-    - `./ssh/key-gen.sh  bitbucketbot`
-    - `./ssh/key-gen.sh  bitbucketbot ds3E2#$78`
+    - `./ssh/key-gen.sh bitbucketbot`
+    - `./ssh/key-gen.sh bitbucketbot ds3E2#$78`
 
-### Tool 
-
-❌
+### Extras
 
 - `./tool/git-fingerprints.sh`
 - `./tool/hostname-change.sh`
 - `./tool/server-page.sh`
-- `./tool/ubuntu-basics.sh`
-- `./tool/timezone-set.sh`
-
-## Recipes
-
-### Webserver Apache + PHP
-
-(ubuntu)
-
-```bash
-./recipes/webspace-apache-php.sh
-
-# requires manual monitoring scraper setup at monit-master
-# firewall config for http/https not included
-# does not setup ssl
-```
-
-#### Single-Server Apache + PHP
-
-```bash
-# allow 80/443 in firewall
-ufw allow 80
-ufw allow 443
-
-# setup default server page:
-./apache/vhost-default.sh
-./tool/server-page.sh
-
-# create new custom vhost, with the folder name `example` and the main domain `example.org` (change those with yours!)
-./apache/vhost-create.sh example example.org
-./tool/server-page.sh example
-
-# install lets encrypts certbot
-./certbot/install-apache-certbot.sh
-# create certificates
-./apache/vhost-ssl-secure.sh example hostmaster@example.com
-./apache/vhost-ssl-redir.sh example # force non-ssl to ssl redir for all
-
-# or manual certbot management:
-certbot run --apache -n -d example.org --agree-tos -m hostmaster@example.com
-certbot renew --dry-run # check automatic renew of certification
-```
-
-#### Loadbalanced Apache + PHP
-
-Allow access to port 80 only from loadbalancer in firewall, replace `10.0.0.2` with the ip of your loadbalancer
- 
-```bash
-ufw allow from 10.0.0.2 to any port 80
-``` 
-
-### Setup Bastion Host
-
-Todo add how-to: configure firewalls for non-ssh entry when not from bastion host and how to configure e.g. putty for full-project access.
-
-Todo add how-to: further usage scenarios of bastion hosts, e.g. deploy-master  
-
-## Add New Task
-
-Through `./init.sh` available installation and setup arguments are organized as tasks.
- 
-The execution is saved in [_boot/state_init.sh](_boot/state_init.sh), which is copied to project parent's folder at first run.
-
-The server inits can simply be updated with `git pull` - no file within this project changes while using it. 
-
-Adding the example task `--install-loadtest`:
-
-**Create Task File:**
-
-1. Create File: `install/install-loadtest.sh`
-2. Define the installation of loadtest there
-3. Add state updating at the end: 
-```bash
-DIR_CUR=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
-echo " ✓ Installed Loadtest"
-INSTALLED_LOADTEST=true
-sed -i "s/INSTALLED_LOADTEST=false/INSTALLED_LOADTEST=true/" ${DIR_CUR}/../../state_init.sh
-```
-
-**Define Task Argument:**
-
-1. Open [init.sh](init.sh)
-2. Add new `TO_INSTALL_LOADTEST=false` within the top variables
-3. Add new argument like the others:
-```bash
-   --install-loadtest)
-      TO_INSTALL_LOADTEST=true
-          ;;
-```
-4. Add task file execution: `runTask "Loadtest" ${TO_INSTALL_LOADTEST} ${INSTALLED_LOADTEST} "install/install-loadtest.sh"`
-5. Open [_boot/state_init.sh](_boot/state_init.sh)
-6. Add default `false` variable: `INSTALLED_LOADTEST=false`
-7. Open [_boot/print_state.sh](_boot/print_state.sh)
-8. Add current-state output with: `printState ${INSTALLED_LOADTEST} "Loadtest"`
-9. Open [_boot/print_state_selected.sh](_boot/print_state_selected.sh)
-10. Add current-state and if selected output with: `printStateSelected ${INSTALLED_LOADTEST} "Loadtest" ${TO_INSTALL_LOADTEST}`
+- `./tool/timezone-set.sh` (uses `conf.sh` timezone)  
 
 ## Todos
 
