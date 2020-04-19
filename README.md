@@ -29,6 +29,8 @@ Tested/used on Ubuntu 18.04 LTS and CentOS 8 virtual cloud server.
 
 ## Recipes
 
+Use these recipes for a full setup of specific service-servers, they just combine multiple other scripts:  
+
 - [Webserver Apache + PHP](./HOW_Webserver-Apache-PHP.md)
 - [DB Master MySQL](./HOW_DB-Master-MySQL.md)
 - [Loadbalancer HAProxy](./HOW_Loadbalancer-HAProxy.md)
@@ -157,11 +159,13 @@ Apache vhost management:
 Apache SSL (uses certbot):
 
 - **ssl redir** on: `./apache/vhost-ssl-redir.sh <vh-name>`
-- **ssl secure**: `./apache/vhost-ssl-secure.sh <vh-name> <notify-email>`
+- **ssl secure**: `./apache/vhost-ssl-secure.sh <vh-name> <notify-email> [<force>]`
     - enables/renews ssl security for already configured domains in the vhost
     - creates/updates a single certificate per vhost
+    - enables vhost redirection with certbot
     - just rerun after added some alias or server to a config
-    - `./apache/vhost-ssl-secure.sh <vh-name> <notify-email>`
+    - `./apache/vhost-ssl-secure.sh example hostmaster@example.org`
+    - `./apache/vhost-ssl-secure.sh example hostmaster@example.org 1`, for forcing renewing
 
 ### certbot for SSL / TLS
 

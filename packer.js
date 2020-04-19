@@ -19,7 +19,6 @@ const scanner = function(dir, done, exclude = []) {
             fs.stat(file, function(err, stat) {
                 if(stat && stat.isDirectory()) {
                     if(exclude.includes(file)) {
-                        pending--;
                         if(!--pending) done(null, results);
                         return;
                     }

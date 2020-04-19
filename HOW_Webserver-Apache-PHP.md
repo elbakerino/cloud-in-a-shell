@@ -28,9 +28,8 @@ ufw allow 443
 
 # install lets encrypts certbot
 ./certbot/install-apache-certbot.sh
-# create certificates
+# create certificates and http to https redirect
 ./apache/vhost-ssl-secure.sh example hostmaster@example.com
-./apache/vhost-ssl-redir.sh example # force non-ssl to ssl redir for all
 
 # or manual certbot management:
 certbot run --apache -n -d example.org --agree-tos -m hostmaster@example.com
