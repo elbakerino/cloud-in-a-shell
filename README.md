@@ -187,8 +187,27 @@ Apache SSL (uses certbot):
 
 ### HAProxy
 
+HAProxy is used as loadbalancer, these scripts work with an abstraction config which controls HAProxy and certbot.
+
+Create the file `~/haproxy.conf` for the user running the scripts, the order is important for the ACL rules and the config vars must be set in the correct order (currently):
+
+```text
+[backendname1]
+acl_host=example.org .example.org
+ssl_domains=example.org www.example.org dev.example.org
+maxconn=400
+server=10.0.0.10:80 10.0.0.11:80
+```
+
 - install: `./haproxy/install-haproxy.sh` (centos) (**relies on basics-centos**)
 - reload: `./haproxy/reload.sh`
+- (re-)configure: `./haproxy/config-haproxy.sh [<ssl>]`, builds the `haproxy.cfg` from the `~/haproxy.conf`
+    - configure with ssl on: `./haproxy/config-haproxy.sh ssl`
+    - configure with ssl off: `./haproxy/config-haproxy.sh`
+- certs creation/update: `./haproxy/cert-check.sh [<email>]`
+    - uses the `~/haproxy.conf` and existing certs for the certbot commands
+    - uses the backend_name as name of the cert
+    - makes a HAProxy compatible cert from the certbot created cert
 
 Servers:
 

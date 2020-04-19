@@ -2,11 +2,8 @@
 
 DIR_CUR=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 
-if ! test -f "/usr/local/bin/certbot-auto"; then
-  wget https://dl.eff.org/certbot-auto
-  mv certbot-auto /usr/local/bin/certbot-auto
-  chown root /usr/local/bin/certbot-auto
-  chmod 0755 /usr/local/bin/certbot-auto
+if ! test -f "/usr/local/bin/certbot"; then
+  source ${DIR_CUR}/install-centos.sh
 fi
 
 CERT_NAME=${1}
@@ -55,12 +52,12 @@ if test -z "${EMAIL}"
 then
   echo "   Create/Expanding cert '${CERT_NAME}'..."
   echo ""
-  /usr/local/bin/certbot-auto certonly --webroot -n --webroot-path "/var/lib/haproxy/docroot" \
+  /usr/local/bin/certbot certonly --webroot -n --webroot-path "/var/lib/haproxy/docroot" \
       --cert-name ${CERT_NAME} -n ${SERV_NAMES} --expand --agree-tos
 else
   echo "   Create/Expanding cert '${CERT_NAME}' with warning email '${EMAIL}'..."
   echo ""
-  /usr/local/bin/certbot-auto certonly --webroot -n --webroot-path "/var/lib/haproxy/docroot" \
+  /usr/local/bin/certbot certonly --webroot -n --webroot-path "/var/lib/haproxy/docroot" \
       --cert-name ${CERT_NAME} -n ${SERV_NAMES} --expand --agree-tos -m ${EMAIL}
 fi
 

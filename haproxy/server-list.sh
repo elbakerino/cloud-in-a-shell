@@ -15,11 +15,6 @@ conffile=/etc/haproxy/haproxy.cfg
         echo " Backend:         ${backend}"
         backed_info=$(awk "/^backend ${backend}/,/#----/" ${conffile})
 
-        FRONTEND_PORT=$(cat ${conffile} | grep -A1 "frontend ${backend}.*" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' | sed 's/  */ /g' | cut -f2 -d":" | cut -f1 -d" ")
-        if ! test -z ${FRONTEND_PORT}; then
-          echo "   Frontend Port: ${FRONTEND_PORT}"
-        fi
-
         if echo "${backed_info}" | grep -q "default-server.*"; then
           echo "   Defaults:      $(echo "${backed_info}" | grep -e "default-server.*" | sed 's/  */ /g' | cut -f3- -d" ")"
         fi

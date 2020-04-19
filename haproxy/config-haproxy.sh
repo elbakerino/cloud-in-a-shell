@@ -12,14 +12,23 @@ if ! test -f "/etc/haproxy/haproxy.cfg"; then
   touch /etc/haproxy/haproxy.cfg
 fi
 
+conffile=$(bash -c "echo ~/haproxy.conf")
+if ! test -f ${conffile}; then
+  echo "File not found, create: ~/haproxy.conf"
+  exit 1
+fi
+
 DEFAULT_BACKEND=loadbalancer
-STATS_PORT=${8080}
+STATS_PORT=8080
 SERV_TPL=${NET_WEBSRV}
 SERV_PORT=${NET_WEBSRV_PORT}
 
 SSL_COMMENT='#'
 if [[ ${HAPROXY_SSL} == 1 ]]; then
   SSL_COMMENT=''
+  echo "Configuring HAProxy and turning SSL on"
+else
+  echo "Configuring HAProxy - no SSL!"
 fi
 
 cat >/etc/haproxy/haproxy.cfg <<EOF
@@ -63,9 +72,9 @@ global
     server-state-file /etc/haproxy/haproxy.state
 
     # turn on cli socket
-    stats socket /var/run/haproxy.sock level admin
+    stats socket /var/run/haproxy.sock expose-fd listeners level admin
     # turn on exporter socket
-    stats socket /var/run/haproxy-exporter.sock mode 660 level admin
+    stats socket /var/run/haproxy-exporter.sock mode 660 expose-fd listeners level admin
 
     # Static Server
     lua-load     /etc/haproxy/static-server.lua
@@ -149,12 +158,44 @@ ${SSL_COMMENT}    #acl url_static        path_beg       -i /static /images /java
 ${SSL_COMMENT}    #acl url_static        path_end       -i .jpg .gif .png .css .js
 ${SSL_COMMENT}    #use_backend static    if url_static
 
-${SSL_COMMENT}    #acl host_customer1 hdr_end(host) -i example.org .example.org
-${SSL_COMMENT}    #acl host_customer1 hdr_end(host) -i example.org dev.example.org status.example.org
+EOF
+
+while read line; do
+  if [[ $line =~ ^"["(.+)"]"$ ]]; then
+    backend_name=${BASH_REMATCH[1]}
+  elif [[ $line =~ ^([_[:alpha:]][_[:alnum:]]*)"="(.*) ]]; then
+    varname=${BASH_REMATCH[1]}
+    varval=${BASH_REMATCH[2]}
+
+    if [[ ${varname} == 'acl_host' ]]; then
+      echo "Allowing hosts for '${backend_name}': ${varval}"
+      cat <<EOF >>/etc/haproxy/haproxy.cfg
+${SSL_COMMENT}    acl host_${backend_name} hdr_end(host) -i ${varval}
+EOF
+    fi
+  fi
+done <${conffile}
+
+cat <<EOF >>/etc/haproxy/haproxy.cfg
 
 ${SSL_COMMENT}    default_backend ${DEFAULT_BACKEND}
+EOF
 
-${SSL_COMMENT}    #use_backend customer1 if host_customer1
+while read line; do
+  if [[ $line =~ ^"["(.+)"]"$ ]]; then
+    backend_name=${BASH_REMATCH[1]}
+  elif [[ $line =~ ^([_[:alpha:]][_[:alnum:]]*)"="(.*) ]]; then
+    varname=${BASH_REMATCH[1]}
+    varval=${BASH_REMATCH[2]}
+    if [[ ${varname} == 'acl_host' ]]; then
+      cat <<EOF >>/etc/haproxy/haproxy.cfg
+${SSL_COMMENT}    use_backend ${backend_name} if host_${backend_name}
+EOF
+    fi
+  fi
+done <${conffile}
+
+cat <<EOF >>/etc/haproxy/haproxy.cfg
 
 #---------------------------------------------------------------------
 # static backend for serving up images, stylesheets and such
@@ -162,14 +203,20 @@ ${SSL_COMMENT}    #use_backend customer1 if host_customer1
 #backend static
 #    balance     roundrobin
 #    server      static 127.0.0.1:4331 check
+EOF
+
+cat <<EOF >>/etc/haproxy/haproxy.cfg
 
 backend certbot
     # docroot must be relative to chroot dir
     http-request set-header X-LUA-LOADFILE-DOCROOT /docroot
     http-request use-service lua.static-server
+EOF
+
+cat <<EOF >>/etc/haproxy/haproxy.cfg
 
 #---------------------------------------------------------------------
-# round robin balancing between the various backends
+# application backends
 #---------------------------------------------------------------------
 backend ${DEFAULT_BACKEND}
     balance     roundrobin                                    # Balance algorithm
@@ -177,6 +224,41 @@ backend ${DEFAULT_BACKEND}
     default-server check maxconn 100
     # server servername1 ${SERV_TPL}:${SERV_PORT}
     server-template websrv 1-100 ${SERV_TPL}:${SERV_PORT} check disabled
-    # server nginx2.example.com 192.168.1.105:80 check
+EOF
+
+while read line; do
+  if [[ $line =~ ^"["(.+)"]"$ ]]; then
+    backend_name=${BASH_REMATCH[1]}
+    cat <<EOF >>/etc/haproxy/haproxy.cfg
+#---------------------------------------------------------------------
+backend ${backend_name}
+    balance     roundrobin                                    # Balance algorithm
+    option httpchk HEAD / HTTP/1.1\r\nHost:\ localhost        # Check the server application is up and healty - 200 status code
+EOF
+  elif [[ $line =~ ^([_[:alpha:]][_[:alnum:]]*)"="(.*) ]]; then
+    varname=${BASH_REMATCH[1]}
+    varval=${BASH_REMATCH[2]}
+
+    if [[ ${varname} == 'maxconn' ]]; then
+      cat <<EOF >>/etc/haproxy/haproxy.cfg
+    default-server check maxconn ${varval}
+EOF
+    elif [[ ${varname} == 'server' ]]; then
+      count=0
+      echo "Setting servers for '${backend_name}': ${varval}"
+      for i in ${varval}; do
+        cat <<EOF >>/etc/haproxy/haproxy.cfg
+    server ${backend_name}_${count} ${i} enabled
+EOF
+        ((count++))
+      done
+    fi
+  fi
+done <${conffile}
+
+cat <<EOF >>/etc/haproxy/haproxy.cfg
 #-------------------these-lines-are-important-between-backends-and-eof
 EOF
+
+
+echo "Recreated /etc/haproxy/haproxy.cfg - reload of HAProxy needed."

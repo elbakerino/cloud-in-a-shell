@@ -12,14 +12,14 @@ if [ ${OS} = "Ubuntu" ]; then
   certbot certificates
 
 elif [ ${OS} = "CentOS" ]; then
-  if ! test -f "/usr/local/bin/certbot-auto"; then
+  if ! test -f "/usr/local/bin/certbot"; then
     source ${DIR_CUR}/install-centos.sh
   fi
 
-  /usr/local/bin/certbot-auto certificates
+  certbot certificates
 
   # Setup auto renewal
-  echo "0 0,12 * * * root python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/local/bin/certbot-auto renew" | sudo tee -a /etc/crontab >/dev/null
+  echo "0 0,12 * * * root python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/local/bin/certbot renew" | sudo tee -a /etc/crontab >/dev/null
 fi
 
 echo " ✓ certbot NGINX"
