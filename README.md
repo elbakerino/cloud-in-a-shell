@@ -136,28 +136,28 @@ Includes basic packages which are used throughout the other scripts or are impor
 
 ### Apache (ubuntu)
 
-- install: `./apache/install-apache.sh` (**relies on basics-ubuntu**)
+- **install**: `./apache/install-apache.sh` (**relies on basics-ubuntu**)
     - firewall ports needs to be enabled manually
-- performance: `./apache/conf-performance.sh [cores]`, configures mpm server limits based on cpu
+- **performance**: `./apache/conf-performance.sh [cores]`, configures mpm server limits based on cpu
     - `./apache/conf-performance.sh 1`, `./apache/conf-performance.sh 4`
     
 Apache vhost management:
 
-- create: `./apache/vhost-create.sh <vh-name> <server-name>`, creates a new vhost with the specified main server_name, *has todos*
-- create default: `./apache/vhost-default.sh`, creates the catch all localhost vhost: `/var/www/vhosts/example` and config: `/etc/apache2/sites-available/example.conf`
-- disable: `./apache/vhost-dis.sh <vh-name>`, disables the vhost
-- docroot change: `./apache/vhost-docroot-change.sh <vh-name> <rel-path>`, changes the documentroot for the vhost
+- **create**: `./apache/vhost-create.sh <vh-name> <server-name>`, creates a new vhost with the specified main server_name, *has todos*
+- **create default**: `./apache/vhost-default.sh`, creates the catch all localhost vhost: `/var/www/vhosts/example` and config: `/etc/apache2/sites-available/example.conf`
+- **disable**: `./apache/vhost-dis.sh <vh-name>`, disables the vhost
+- **docroot change**: `./apache/vhost-docroot-change.sh <vh-name> <rel-path>`, changes the documentroot for the vhost
     - `./apache/vhost-docroot-change.sh example new_public`, changes the root from `/var/www/vhosts/example` to `/var/www/vhosts/example/new_public`
-- list: `./apache/vhost-list.sh`, list infos about all configured vhosts
-- rm: `./apache/vhost-rm.sh <vh-name>`, removes the vhost config at all, **deletes the config file!**
-- alias add: `./apache/vhost-alias-add.sh <vh-name> <alias>`, add server_alias to vhost, includes duplicate check, *todo: duplicate check not includes main server_name*
+- **list**: `./apache/vhost-list.sh`, list infos about all configured vhosts
+- **rm**: `./apache/vhost-rm.sh <vh-name>`, removes the vhost config at all, **deletes the config file!**
+- **alias add**: `./apache/vhost-alias-add.sh <vh-name> <alias>`, add server_alias to vhost, includes duplicate check, *todo: duplicate check not includes main server_name*
     - `./apache/vhost-alias-add.sh example demo.example.org`, adds alias to vhost `/var/www/vhosts/example` and config: `/etc/apache2/sites-available/example.conf`
-- alias rm: `./apache/vhost-alias-rm.sh <vh-name> <alias>`
+- **alias rm**: `./apache/vhost-alias-rm.sh <vh-name> <alias>`
 
 Apache SSL (uses certbot):
 
-- enables ssl redir: `./apache/vhost-ssl-redir.sh <vh-name>`
-- ssl secure: `./apache/vhost-ssl-secure.sh <vh-name> <notify-email>`
+- **ssl redir** on: `./apache/vhost-ssl-redir.sh <vh-name>`
+- **ssl secure**: `./apache/vhost-ssl-secure.sh <vh-name> <notify-email>`
     - enables/renews ssl security for already configured domains in the vhost
     - creates/updates a single certificate per vhost
     - just rerun after added some alias or server to a config
@@ -169,13 +169,13 @@ Apache SSL (uses certbot):
 >
 > Let’s Encrypt usage to provision TLS certificates oblige to the [Let’s Encrypt Subscriber Agreement(s) & Terms of Services](https://letsencrypt.org/repository/). You accept the terms by using the SSL scripts supplied by cloud-in-a-shell.
 
-- apache: `./certbot/install-apache-certbot.sh` (**relies on basics-ubuntu**) (ubuntu)
+- **apache**: `./certbot/install-apache-certbot.sh` (**relies on basics-ubuntu**) (ubuntu)
     - for management use: `./apache-vhost-ssl-secure`
-- haproxy: `./certbot/install-haproxy-certbot.sh <cert-name> <email> [<(new)-host>]`, installs certbot and setups certs, only installs when not installed
+- **haproxy**: `./certbot/install-haproxy-certbot.sh <cert-name> <email> [<(new)-host>]`, installs certbot and setups certs, only installs when not installed
     - `./certbot/install-haproxy-certbot.sh example hostmaster@example.org`, creates or updates the cert `example.pem` with the warning email 
     - `./certbot/install-haproxy-certbot.sh example hostmaster@example.org demo.example.org`, creates or updates the cert `example.pem` with the warning email, adds the host `demo.example.org` to the hosts of the file
-- nginx: `./certbot/install-nginx-certbot.sh` (ubuntu/centos) (**relies on basics-ubuntu**)
-- centos: `./certbot/install-centos.sh` installs certbot-auto on centos
+- **nginx**: `./certbot/install-nginx-certbot.sh` (ubuntu/centos) (**relies on basics-ubuntu**)
+- **centos**: `./certbot/install-centos.sh` installs certbot-auto on centos
 
 ### Consul
 
@@ -183,7 +183,7 @@ Apache SSL (uses certbot):
 
 ### Grafana
 
-- install: `./grafana/install-grafana.sh` (ubuntu) (**relies on basics-ubuntu**)
+- **install**: `./grafana/install-grafana.sh` (ubuntu) (**relies on basics-ubuntu**)
 
 ### HAProxy
 
@@ -199,77 +199,77 @@ maxconn=400
 server=10.0.0.10:80 10.0.0.11:80
 ```
 
-- install: `./haproxy/install-haproxy.sh` (centos) (**relies on basics-centos**)
-- reload: `./haproxy/reload.sh`
-- (re-)configure: `./haproxy/config-haproxy.sh [<ssl>]`, builds the `haproxy.cfg` from the `~/haproxy.conf`
+- **install**: `./haproxy/install-haproxy.sh` (centos) (**relies on basics-centos**)
+- **reload**: `./haproxy/reload.sh`
+- **(re-)configure**: `./haproxy/config-haproxy.sh [<ssl>]`, builds the `haproxy.cfg` from the `~/haproxy.conf`
     - configure with ssl on: `./haproxy/config-haproxy.sh ssl`
     - configure with ssl off: `./haproxy/config-haproxy.sh`
-- certs creation/update: `./haproxy/cert-check.sh [<email>]`
+- **certs creation/update**: `./haproxy/cert-check.sh [<email>]`
     - uses the `~/haproxy.conf` and existing certs for the certbot commands
     - uses the backend_name as name of the cert
     - makes a HAProxy compatible cert from the certbot created cert
 
 Servers:
 
-- list: `./haproxy/server-list.sh`
-- add: `./haproxy/server-add.sh`
-- drain: `./haproxy/server-drain.sh`
-- enable: `./haproxy/server-enable.sh`
-- disable: `./haproxy/server-disable.sh`
+- **list**: `./haproxy/server-list.sh`
+- **add**: `./haproxy/server-add.sh`
+- **drain**: `./haproxy/server-drain.sh`
+- **enable**: `./haproxy/server-enable.sh`
+- **disable**: `./haproxy/server-disable.sh`
 
 Stats:
 
-- stats-secure: `./haproxy/stats-secure.sh <username>`, secures the stats page with custom basic-auth credentials, (interactive)
+- **stats-secure**: `./haproxy/stats-secure.sh <username>`, secures the stats page with custom basic-auth credentials, (interactive)
 
 Stats defaults to: `hostname:8080/stats` (or ip instead of host)
 
 ### Hetzner
 
-- float ip bind: `./hetzner/floatip-bind.sh <ip4> [<ip6>]` (centos/ubuntu)
+- **float ip bind**: `./hetzner/floatip-bind.sh <ip4> [<ip6>]` (centos/ubuntu)
 
 ### MariaDB / MySQL
 
-- install: `./mariadb/install-mariadb.sh`, (interactive)
-- user create: `./mariadb/create-user.sh`, (interactive)
-- db create: `./mariadb/create-db.sh`, (interactive)
-- remote allow: `./mariadb/remote-allow.sh`
-- remote forbid: `./mariadb/remote-forbid.sh`
+- **install**: `./mariadb/install-mariadb.sh`, (interactive)
+- **user create**: `./mariadb/create-user.sh`, (interactive)
+- **db create**: `./mariadb/create-db.sh`, (interactive)
+- **remote allow**: `./mariadb/remote-allow.sh`
+- **remote forbid**: `./mariadb/remote-forbid.sh`
 
 ### NGINX
 
 ❌
 
-- install: `./nginx/install-nginx.sh` (centos)
-- server disable: `./nginx/server-dis.sh`
-- server set: `./nginx/server-set.sh`
+- **install**: `./nginx/install-nginx.sh` (centos)
+- **server disable**: `./nginx/server-dis.sh`
+- **server set**: `./nginx/server-set.sh`
 
 ### PHP
 
-- install: `./php/install-php.sh`, installs php (7.4) and composer, (ubuntu) 
-- config cli: `./php/php-cli.sh`, basic configuration for cli usage
-- config fpm: `./php/php-fpm.sh`, basic configuration for fpm servers
+- **install**: `./php/install-php.sh`, installs php (7.4) and composer, (ubuntu) 
+- **config cli**: `./php/php-cli.sh`, basic configuration for cli usage
+- **config fpm**: `./php/php-fpm.sh`, basic configuration for fpm servers
     - currently optimized for apache usage / apache has mpm_event which controls fpm servers
 
 ### Prometheus
 
-- install: `./prometheus/install-master.sh` install prometheus master and grafana, (ubuntu) 
+- **install**: `./prometheus/install-master.sh` install prometheus master and grafana, (ubuntu) 
 - install exporter: 
-    - apache: `./prometheus/exporter-apache.sh`, (ubuntu/centos)
-    - haproxy: `./prometheus/exporter-haproxy.sh`, (ubuntu/centos) (*todo: fail after reboot, wrong owner of stats*)
-    - mysql/mariadb: `./prometheus/exporter-mysql.sh`, (ubuntu/centos)
-    - system: `./prometheus/exporter-node.sh`, (cpu, memory, network...), (ubuntu/centos)
-    - statsd: `./prometheus/exporter-statsd.sh`, [statsd](https://github.com/statsd/statsd) a generic stats daemon, (ubuntu/centos) (*scribble*)
+    - **apache**: `./prometheus/exporter-apache.sh`, (ubuntu/centos)
+    - **haproxy**: `./prometheus/exporter-haproxy.sh`, (ubuntu/centos) (*todo: fail after reboot, wrong owner of stats*)
+    - **mysql/mariadb**: `./prometheus/exporter-mysql.sh`, (ubuntu/centos)
+    - **system**: `./prometheus/exporter-node.sh`, (cpu, memory, network...), (ubuntu/centos)
+    - **statsd**: `./prometheus/exporter-statsd.sh`, [statsd](https://github.com/statsd/statsd) a generic stats daemon, (ubuntu/centos) (*scribble*)
 - master tools:
-    - target add: `./prometheus/add-target.sh <target>`, add new scraper targets, (ubuntu)
+    - **target add**: `./prometheus/add-target.sh <target>`, add new scraper targets, (ubuntu)
         - `./prometheus-add-target.sh 10.0.0.2:9100 10.0.0.2:9100` supports multiple at once
         - *todo*: not adding already existing once
 - exporter tools:
     - network tools allow scraper access from within configured `NET_MONIT`/24
-    - haproxy: `./prometheus/network-haproxy.sh` 9101 (ubuntu/centos)
-    - statsd: `./prometheus/network-statsd.sh` 9102 (ubuntu/centos)
-    - apache: `./prometheus/network-apache.sh` 9117 (ubuntu/centos)
-    - mysql: `./prometheus/network-mysql.sh` 9104 (ubuntu/centos)
-    - node: `./prometheus/network-node.sh` 9100 (ubuntu/centos)
+    - **haproxy**: `./prometheus/network-haproxy.sh` 9101 (ubuntu/centos)
+    - **statsd**: `./prometheus/network-statsd.sh` 9102 (ubuntu/centos)
+    - **apache**: `./prometheus/network-apache.sh` 9117 (ubuntu/centos)
+    - **mysql**: `./prometheus/network-mysql.sh` 9104 (ubuntu/centos)
+    - **node**: `./prometheus/network-node.sh` 9100 (ubuntu/centos)
 
 ### SSH 
 
