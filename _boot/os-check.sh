@@ -4,6 +4,9 @@ OS=false
 if test -f "/etc/lsb-release" && grep -q "Ubuntu 18" "/etc/lsb-release"; then
   echo " > on Ubuntu 18.x"
   OS="Ubuntu"
+elif test -f "/etc/lsb-release" && grep -q "Ubuntu 20" "/etc/lsb-release"; then
+  echo " > on Ubuntu 18.x"
+  OS="Ubuntu"
 elif test -f "/etc/centos-release" && grep -qE "CentOS .+ release 8" "/etc/centos-release"; then
   echo " > on CentOS 8"
   OS="CentOS"
@@ -17,6 +20,10 @@ else
   fi
 
   exit
+fi
+
+if test -f "/etc/lsb-release" && grep -q "Ubuntu 20" "/etc/lsb-release"; then
+  echo " > !ALPHA! on Ubuntu 20.x"
 fi
 
 function getOwnIP() {

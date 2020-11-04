@@ -11,16 +11,18 @@ apt install -yq php${PHP_V} php${PHP_V}-fpm \
 	php${PHP_V}-opcache \
 	php${PHP_V}-gd php${PHP_V}-imagick \
 	php${PHP_V}-intl php${PHP_V}-readline php${PHP_V}-pspell php${PHP_V}-tidy php${PHP_V}-xsl \
-	php${PHP_V}-apc php${PHP_V}-memcached \
+	php${PHP_V}-apcu php${PHP_V}-memcached \
 	php${PHP_V}-xml php${PHP_V}-zip php${PHP_V}-json
 
+# todo: apc is not available by default on 20, but on 18, on 20 only apcu
+#php${PHP_V}-apc
 # Install Composer
 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Setup PHP Configs
-source ${DIR_CUR}/../tool/php-cli.sh
+source ${DIR_CUR}/php-cli.sh
 
-source ${DIR_CUR}/../tool/php-fpm.sh
+source ${DIR_CUR}/php-fpm.sh
 
 echo " ✓ Installed PHP v${PHP_V}"
 INSTALLED_PHP=true

@@ -26,7 +26,7 @@ cat >/var/www/${SERVER_PAGE_PATH}/index.html <<EOF
   <span style="margin: auto 0 auto auto;">I'm a</span> <span style="font-size: 3rem; margin: auto auto auto 4px">🍵</span>
 </p>
 <p style="text-align: center; font-family: Consolas, monospace; color: #266460">on <i>${HOSTNAME}</i></p>
-<p style="text-align: center; font-family: Consolas, monospace; color: #266460"><small>by serverinits</small></p>
+<p style="text-align: center; font-family: Consolas, monospace; color: #266460"><small>by cloud in a shell</small></p>
 </body>
 </html>
 EOF

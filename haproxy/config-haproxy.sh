@@ -80,8 +80,11 @@ global
     lua-load     /etc/haproxy/static-server.lua
 
     # utilize system-wide crypto-policies
-    ssl-default-bind-ciphers   PROFILE=SYSTEM
-    ssl-default-server-ciphers PROFILE=SYSTEM
+    #ssl-default-bind-ciphers   PROFILE=SYSTEM
+    #ssl-default-server-ciphers PROFILE=SYSTEM
+    ssl-default-bind-ciphers   ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256
+    ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256
+    ssl-default-bind-options no-tlsv10 no-tlsv11
     tune.ssl.default-dh-param  2048
 
 #---------------------------------------------------------------------

@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # firewall config for monitoring access within private network
+DIR_CUR=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
+source ${DIR_CUR}/../_boot.sh
+DIR_CUR=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 
 network=${1}
 if test -z "${network}"; then
