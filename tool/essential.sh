@@ -175,48 +175,6 @@ essentials_info(){
     echo -e "\t$(essentials_text_green "essentials_mail") $(essentials_text_darkgray "#send mail")"
 }
 
-
-
-essentials_storage_dir="script_data"
-
-
-
-essentials_storage_validate(){
-	echo "${1}" | grep -Eq '^[0-9a-zA-Z._:-]+$'
-	test "$?" = "0" #TODO
-}
-
-
-essentials_storage_get(){
-  essentials_storage_key="${1}"
-  essentials_storage_validate "${essentials_storage_key}" || return 1
-  if [ -f "${essentials_storage_dir}/${essentials_storage_key}" ];then
-    essentials_storage_value=$(cat "${essentials_storage_dir}/${essentials_storage_key}")
-    echo -e "${essentials_storage_value}"
-  else
-    return 1
-  fi
-
-}
-
-essentials_storage_set(){
-  essentials_storage_key="${1}"
-  essentials_storage_value="${2}"
-  essentials_storage_validate "${essentials_storage_key}" || return 1
-  [ -d "${essentials_storage_dir}" ] || mkdir --parents "${essentials_storage_dir}"
-  echo -e "${essentials_storage_value}" > "${essentials_storage_dir}/${essentials_storage_key}"
-}
-
-essentials_storage_delete(){
-  essentials_storage_key="${1}"
-  essentials_storage_validate "${essentials_storage_key}" || return 1
-  [ -f "${essentials_storage_dir}/${essentials_storage_key}" ] && rm -f "${essentials_storage_dir}/${essentials_storage_key}"
-}
-
-
-
-
-
 essentials_load;
 #TODO better update/deploy
 if [[ "${1}" == "core" ]];then
