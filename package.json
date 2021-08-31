@@ -12,6 +12,6 @@
     },
     "dependencies": {
         "ssh2-sftp-client": "^5.1.2",
-        "tar": "^6.0.1"
+        "tar": "^6.1.9"
     }
 }
